@@ -1,4 +1,7 @@
-get instagram scraper from here: https://github.com/rarcega/instagram-scraper
+Live demo on https://olivierbouwman.github.io/devsigner/
+Note: Images do not get updated automatically on the demo page.
+
+Get instagram scraper from here: https://github.com/rarcega/instagram-scraper
 
 run these commands to download images and generate a file list.
    cd /Users/olivierbouwman/Sites/devsigner
