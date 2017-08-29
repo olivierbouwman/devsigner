@@ -41,7 +41,7 @@ function loadFiles() {
 
 function determineImagePlacement(fileArray) {
   var imageArrayDark = fileArray.slice(0, darkPixels);
-  var imageArrayLight = fileArray.slice(-darkPixels);
+  var imageArrayLight = fileArray.slice(darkPixels);
   // var imageArrayDark = fileArray.slice(0, Math.floor(Math.floor(fileArray.length)/2));
   // var imageArrayLight = fileArray.slice(-(Math.floor(Math.floor(fileArray.length)/2)));
   var brighten;
