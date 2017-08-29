@@ -1,4 +1,5 @@
-var timeBetweenImagePlacement = 100;
+var timeBetweenImagePlacementAdd = 100;
+var timeBetweenImagePlacementRemove = 15;
 var timeDelayAfterAddingImages = 10 * 1000;
 var brightenLightImages = 50;
 var brightenDarkImages = -50;
@@ -6,7 +7,7 @@ var imageHeight = 100;
 var imageWidth = 100;
 var jsonFile = "devsigner-files.json";
 var darkPixels = countDarkPixels();
-var reuseImages = false;
+var reuseImages = true;
 var canvas;
 var ctx;
 
@@ -78,7 +79,9 @@ function determineImagePlacement(fileArray) {
 function drawSquares(imageArray, mode) {
   var index = 0;
   var timeDelay = 0;
+  var timeBetweenImagePlacement = timeBetweenImagePlacementRemove;
   if (mode == "add") {
+    timeBetweenImagePlacement = timeBetweenImagePlacementAdd;
     timeDelay = timeDelayAfterAddingImages;
   }
   $.each( imageArray, function( key, val) {
