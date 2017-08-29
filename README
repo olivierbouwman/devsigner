@@ -1,0 +1,15 @@
+get instagram scraper from here: https://github.com/rarcega/instagram-scraper
+
+run these commands to download images and generate a file list.
+   cd /Users/olivierbouwman/Sites/devsigner
+   instagram-scraper devsigner,devsigner2017,devsigner17,devsigner2016,devsigner16,dvsgnrcon,dvsgnrcon2017,dvsgnrcon17,dvsgnrcon2016,dvsgnrcon16,dvsgnr,dvsgnr2017,dvsgnr17,dvsgnr2016,dvsgnr16 -t=image --tag -d devsigner --media_metadata
+   instagram-scraper devsignercon -d devsigner
+   instagram-scraper --location=1862978 (should only include new photos)
+   ./generate_file_list.py devsigner > devsigner-files.json
+
+TODO
+* batch script to loop terminal commands with a 10 second pause in between.
+* change resolution to 1920x1080 for HD projector
+* possibly use image age for something so newer images are more prominent than older images (need to load photo timestamp from json files in image dir)
+* some photos are not square, crop? look for this in instagram scraper and comment out: # get non-square image if one exists
+* only include images in generate_file_list.py
