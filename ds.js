@@ -1,8 +1,6 @@
 var timeBetweenImagePlacementAdd = 100;
 var timeBetweenImagePlacementRemove = 15;
 var timeDelayAfterAddingImages = 10 * 1000;
-var brightenLightImages = 50;
-var brightenDarkImages = -50;
 var imageHeight = 100;
 var imageWidth = 100;
 var jsonFile = "devsigner-files.json";
@@ -44,7 +42,6 @@ function determineImagePlacement(fileArray) {
   var imageArrayLight = fileArray.slice(darkPixels);
   // var imageArrayDark = fileArray.slice(0, Math.floor(Math.floor(fileArray.length)/2));
   // var imageArrayLight = fileArray.slice(-(Math.floor(Math.floor(fileArray.length)/2)));
-  var brighten;
   var imageArray = [];
   pixelArray = loadMasterImage();
   pixelArray = shuffleArray(pixelArray);
@@ -57,7 +54,7 @@ function determineImagePlacement(fileArray) {
       if (reuseImages === true && imageArrayLight.length < 1) {
         imageArrayLight = fileArray.slice(-(Math.floor(Math.floor(fileArray.length)/2)));
       }
-      var brighten = brightenLightImages;
+      var coloroffset = {r: 0, g: 0, b: 0};
     }
     else {
       var image = imageArrayDark[0];
@@ -67,10 +64,10 @@ function determineImagePlacement(fileArray) {
       if (reuseImages === true && imageArrayDark.length < 1) {
         imageArrayDark = fileArray.slice(0, Math.floor(Math.floor(fileArray.length)));
       }
-      var brighten = brightenDarkImages;
+      var coloroffset = {r: 50, g: -50, b: 30};
     }
     if (image) {
-      imageArray.push({imagePath: image['path'], x: val.x, y: val.y, brighten: brighten});
+      imageArray.push({imagePath: image['path'], x: val.x, y: val.y, coloroffset: coloroffset});
     }
   });
   drawSquares(imageArray, 'add');
@@ -92,18 +89,15 @@ function drawSquares(imageArray, mode) {
         img.src = val.imagePath;
         img.onload = function() {
           ctx.drawImage(this, val.x * imageWidth, val.y * imageHeight, imageWidth, imageHeight);
-          if (val.brighten !== 0) {
-            imageData = ctx.getImageData(val.x * imageWidth, val.y * imageHeight, imageWidth, imageHeight),
-            canvasPixelArray = imageData.data,
-            canvasPixelArrayLength = canvasPixelArray.length,
-            i = 0;
-            for (; i < canvasPixelArrayLength; i += 4) {
-              canvasPixelArray[i] += val.brighten;
-              canvasPixelArray[i + 1] += val.brighten;
-              canvasPixelArray[i + 2] += val.brighten;
-            }
-            ctx.putImageData(imageData, val.x * imageWidth, val.y * imageHeight);
+          var imageData = ctx.getImageData(val.x * imageWidth, val.y * imageHeight, imageWidth, imageHeight);
+          var canvasPixelArray = imageData.data;
+          for (var i = 0; i < canvasPixelArray.length; i += 4) {
+            var avg = (canvasPixelArray[i] + canvasPixelArray[i + 1] + canvasPixelArray[i + 2]) / 3;
+            canvasPixelArray[i]     = avg + val.coloroffset.r; // red
+            canvasPixelArray[i + 1] = avg + val.coloroffset.g // green
+            canvasPixelArray[i + 2] = avg + val.coloroffset.b; // blue
           }
+          ctx.putImageData(imageData, val.x * imageWidth, val.y * imageHeight);
         };
       }
       else { //mode == "remove"
