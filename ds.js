@@ -64,7 +64,7 @@ function determineImagePlacement(fileArray) {
       if (reuseImages === true && imageArrayDark.length < 1) {
         imageArrayDark = fileArray.slice(0, Math.floor(Math.floor(fileArray.length)));
       }
-      var coloroffset = {r: 50, g: -50, b: 30};
+      var coloroffset = {r: 30, g: -70, b: 10};
     }
     if (image) {
       imageArray.push({imagePath: image['path'], x: val.x, y: val.y, coloroffset: coloroffset});
