@@ -1,9 +1,12 @@
 var timeBetweenImagePlacementAdd = 100;
 var timeBetweenImagePlacementRemove = 15;
 var timeDelayAfterAddingImages = 10 * 1000;
+var timeToShowBigImage = 5 * 1000;
+var timeToShowLogoAfterBigImage = 5 * 1000;
 var imageHeight = 100;
 var imageWidth = 100;
-var jsonFile = "devsigner-files.json";
+var jsonFile = "devsigner/devsigner.json";
+var jsonFiles = ["devsigner/devsigner.json","devsigner/devsignercon.json","devsigner/dvsgnr2016.json"];
 var darkPixels = countDarkPixels();
 var reuseImages = true;
 var canvas;
@@ -17,27 +20,60 @@ $(document).ready(function() {
 
 function loadFiles() {
   var fileArray = [];
-  var fileCounter = 0
-  $.getJSON( jsonFile, function( data ) {
-    fileCounter = data["children"].length;
-    $.each( data["children"], function( key, val ) {
-      getImageBrightness(val["path"],function(brightness) {
-        if (brightness >= 0) {
-          fileArray.push({path: val["path"], brightness: brightness});
+  // var fileCounterJSON = 0
+  var fileCounterJSON = jsonFiles.length;
+  $.each( jsonFiles, function( index, item ) {
+    $.getJSON( item, function( data ) {
+      var fileCounterImage = data.length;
+      $.each( data, function( key, val ) {
+        if (val["display_url"]) {
+          var photoURL = val["display_url"];
+          var photoTakenDate = val["taken_at_timestamp"];
+          var photoHeight = val["dimensions"]["height"];
+          var photoWidth = val["dimensions"]["width"];
         }
-        fileCounter--;
-        if (fileCounter === 0) {
-          fileArray.sort(function(a, b) {
-            return a.brightness - b.brightness;
-          });
-          determineImagePlacement(fileArray);
+        else if (val["urls"][0]) {
+          var photoURL = val["urls"][0];
+          var photoTakenDate = val["created_time"];
+          var photoHeight = val["images"]["standard_resolution"]["height"];
+          var photoWidth = val["images"]["standard_resolution"]["width"];
         }
+        else {
+          console.log('unknown array structure');
+          return true;
+        }
+        var filePath = "devsigner/" + (photoURL.substr(photoURL.lastIndexOf('/') + 1));
+        getImageBrightness(filePath, function(brightness) {
+          if (brightness >= 0) {
+            fileArray.push({filePath: filePath, brightness: brightness, photoTakenDate: photoTakenDate, photoHeight: photoHeight, photoWidth: photoWidth});
+          }
+          fileCounterImage--;
+          if (fileCounterImage === 0) {
+            fileCounterJSON--;
+            if (fileCounterJSON === 0) {
+              fileArray = removeDuplicatesBy(x => x.filePath, fileArray);
+              drawNewestImage(fileArray);
+            }
+          }
+        });
       });
     });
   });
 }
 
+function removeDuplicatesBy(keyFn, array) {
+  var mySet = new Set();
+  return array.filter(function(x) {
+    var key = keyFn(x), isNew = !mySet.has(key);
+    if (isNew) mySet.add(key);
+    return isNew;
+  });
+}
+
 function determineImagePlacement(fileArray) {
+  fileArray.sort(function(a, b) {
+    return a.brightness - b.brightness;
+  });
   var imageArrayDark = fileArray.slice(0, darkPixels);
   var imageArrayLight = fileArray.slice(darkPixels);
   // var imageArrayDark = fileArray.slice(0, Math.floor(Math.floor(fileArray.length)/2));
@@ -67,10 +103,29 @@ function determineImagePlacement(fileArray) {
       var coloroffset = {r: 30, g: -70, b: 10};
     }
     if (image) {
-      imageArray.push({imagePath: image['path'], x: val.x, y: val.y, coloroffset: coloroffset});
+      imageArray.push({imagePath: image['filePath'], x: val.x, y: val.y, coloroffset: coloroffset});
     }
   });
   drawSquares(imageArray, 'add');
+}
+
+function drawNewestImage(fileArray) {
+  fileArray.sort(function(a, b) {
+    return b.photoTakenDate - a.photoTakenDate;
+  });
+  var img = new Image;
+  img.src = fileArray[0]["filePath"];
+  img.onload = function() {
+    scaledDimensions = fitImageOn(ctx, img);
+    fadeInOut(img, 0, 0.01, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]);
+    setTimeout(function(){
+      fadeInOut(img, 1, -0.01, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]);
+      setTimeout(function(){
+        ctx.clearRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
+        determineImagePlacement(fileArray);
+      }, timeToShowLogoAfterBigImage);
+    }, timeToShowBigImage);
+  }
 }
 
 function drawSquares(imageArray, mode) {
@@ -132,7 +187,7 @@ function getImageBrightness(imageSrc,callback) {
     img.src = imageSrc;
     img.style.display = "none";
     img.onload = function() {
-        // create canvas
+
         var canvas = document.createElement("canvas");
         canvas.width = this.width;
         canvas.height = this.height;
@@ -169,6 +224,56 @@ function shuffleArray(array) {
         array[j] = temp;
     }
     return array;
+}
+
+var fitImageOn = function(ctx, imageObj) {
+	var imageAspectRatio = imageObj.width / imageObj.height;
+	var canvasAspectRatio = ctx.canvas.clientWidth / ctx.canvas.clientHeight;
+	var renderableHeight, renderableWidth, xStart, yStart;
+
+	// If image's aspect ratio is less than canvas's we fit on height
+	// and place the image centrally along width
+	if(imageAspectRatio < canvasAspectRatio) {
+		renderableHeight = ctx.canvas.clientHeight;
+		renderableWidth = imageObj.width * (renderableHeight / imageObj.height);
+		xStart = (ctx.canvas.clientWidth - renderableWidth) / 2;
+		yStart = 0;
+	}
+
+	// If image's aspect ratio is greater than canvas's we fit on width
+	// and place the image centrally along height
+	else if(imageAspectRatio > canvasAspectRatio) {
+		renderableWidth = ctx.canvas.clientWidth
+		renderableHeight = imageObj.height * (renderableWidth / imageObj.width);
+		xStart = 0;
+		yStart = (ctx.canvas.clientHeight - renderableHeight) / 2;
+	}
+
+	// Happy path - keep aspect ratio
+	else {
+		renderableHeight = ctx.canvas.clientHeight;
+		renderableWidth = ctx.canvas.clientWidth;
+		xStart = 0;
+		yStart = 0;
+	}
+  return {renderableHeight: renderableHeight, renderableWidth: renderableWidth, xStart: xStart, yStart: yStart};
+};
+
+function fadeInOut(img, alpha, delta, x, y, width, height) {
+  loop();
+  function loop() {
+    alpha += delta;
+    if (alpha <= 0 || alpha >= 1) {
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    ctx.clearRect(x, y, width, height);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(img, x, y, width, height);;
+
+    requestAnimationFrame(loop);
+  }
 }
 
 function loadMasterImage() {
