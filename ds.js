@@ -11,6 +11,8 @@ var darkPixels = countDarkPixels();
 var reuseImages = true;
 var canvas;
 var ctx;
+var newestPhotoIndex = 0;
+var showNewPhotos = 5;
 
 $(document).ready(function() {
   canvas = $(document).find("canvas")[0];
@@ -110,11 +112,15 @@ function determineImagePlacement(fileArray) {
 }
 
 function drawNewestImage(fileArray) {
+  newestPhotoIndex++;
+  if (newestPhotoIndex > showNewPhotos) {
+    newestPhotoIndex = 1;
+  }
   fileArray.sort(function(a, b) {
     return b.photoTakenDate - a.photoTakenDate;
   });
   var img = new Image;
-  img.src = fileArray[0]["filePath"];
+  img.src = fileArray[newestPhotoIndex - 1]["filePath"];
   img.onload = function() {
     scaledDimensions = fitImageOn(ctx, img);
     fadeInOut(img, 0, 0.01, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]);
