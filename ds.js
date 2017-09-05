@@ -1,28 +1,56 @@
-var timeBetweenImagePlacementAdd = 100;
-var timeBetweenImagePlacementRemove = 15;
-var timeDelayAfterAddingImages = 10 * 1000;
-var timeToShowBigImage = 5 * 1000;
-var timeToShowLogoAfterBigImage = 5 * 1000;
+// settings
+var timeBetweenImagePlacementAdd = 15;
+var timeBetweenImagePlacementRemove = 10;
+var timeDelayAfterAddingImages = 7 * 1000;
+var timeToShowRecentImage = 7 * 1000;
+var timeToShowMainImage = 1 * 1000; // plus time it takes to load all images
+var timeToPauseAfterFadingIn = 1 * 1000;
+var timeToPauseAfterFadingOut = 1.5 * 1000;
 var imageHeight = 100;
 var imageWidth = 100;
-var jsonFile = "devsigner/devsigner.json";
+var fadeSpeed = 0.015;
+var mainImage = "devsigner-background2.png";
 var jsonFiles = ["devsigner/devsigner.json","devsigner/devsignercon.json","devsigner/dvsgnr2016.json"];
 var darkPixels = countDarkPixels();
 var reuseImages = true;
+var showNewPhotos = 5;
+
+// global variables
 var canvas;
 var ctx;
-var newestPhotoIndex = 0;
-var showNewPhotos = 5;
+var recentPhotoIndex = showNewPhotos;
+var fileArray = [];
 
 $(document).ready(function() {
   canvas = $(document).find("canvas")[0];
   ctx = canvas.getContext("2d");
-  loadFiles();
+  flow('start');
 });
 
-function loadFiles() {
-  var fileArray = [];
-  // var fileCounterJSON = 0
+function flow(step) {
+  switch (step) {
+    case 'start':
+      drawMainImage("in");
+      break;
+    case 'drawMainImage_fadeIn_done':
+      loadAllImages();
+      break;
+    case 'loadAllImages_done':
+      drawMainImage("out");
+      break;
+    case 'drawMainImage_fadeOut_done':
+      drawRecentImage();
+      break;
+    case 'drawRecentImage_done':
+      prepareMosaic();
+      break;
+    case 'drawMosaic_done':
+      flow('start');
+      break;
+  }
+}
+
+function loadAllImages() {
   var fileCounterJSON = jsonFiles.length;
   $.each( jsonFiles, function( index, item ) {
     $.getJSON( item, function( data ) {
@@ -54,7 +82,8 @@ function loadFiles() {
             fileCounterJSON--;
             if (fileCounterJSON === 0) {
               fileArray = removeDuplicatesBy(x => x.filePath, fileArray);
-              drawNewestImage(fileArray);
+              flow('loadAllImages_done');
+              return;
             }
           }
         });
@@ -63,23 +92,61 @@ function loadFiles() {
   });
 }
 
-function removeDuplicatesBy(keyFn, array) {
-  var mySet = new Set();
-  return array.filter(function(x) {
-    var key = keyFn(x), isNew = !mySet.has(key);
-    if (isNew) mySet.add(key);
-    return isNew;
-  });
+function drawMainImage(fadeMode) {
+  var img = new Image;
+  img.src = mainImage;
+  img.onload = function() {
+    scaledDimensions = fitImageOn(img);
+    if (fadeMode === "in") {
+      fadeInOut(img, 0, fadeSpeed, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]).then(function(){
+          flow('drawMainImage_fadeIn_done');
+          return;
+      });
+    }
+    else { //fadeMode === "out"
+      setTimeout(function(){
+        fadeInOut(img, 1, -fadeSpeed, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]).then(function(){
+          setTimeout(function(){
+            flow('drawMainImage_fadeOut_done');
+            return;
+          }, timeToPauseAfterFadingOut);
+        });
+      }, timeToShowMainImage);
+    }
+  }
 }
 
-function determineImagePlacement(fileArray) {
+function drawRecentImage() {
+  recentPhotoIndex--;
+  if (recentPhotoIndex < 0) {
+    recentPhotoIndex = 5;
+  }
+  fileArray.sort(function(a, b) {
+    return b.photoTakenDate - a.photoTakenDate;
+  });
+  var img = new Image;
+  img.src = fileArray[recentPhotoIndex]["filePath"];
+  img.onload = function() {
+    scaledDimensions = fitImageOn(img);
+    fadeInOut(img, 0, fadeSpeed, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]).then(function(){
+      setTimeout(function(){
+        fadeInOut(img, 1, -fadeSpeed, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]).then(function(){
+          setTimeout(function(){
+            flow('drawRecentImage_done');
+            return;
+          }, timeToPauseAfterFadingOut);
+        });
+      }, timeToShowRecentImage);
+    });
+  }
+}
+
+function prepareMosaic() {
   fileArray.sort(function(a, b) {
     return a.brightness - b.brightness;
   });
   var imageArrayDark = fileArray.slice(0, darkPixels);
   var imageArrayLight = fileArray.slice(darkPixels);
-  // var imageArrayDark = fileArray.slice(0, Math.floor(Math.floor(fileArray.length)/2));
-  // var imageArrayLight = fileArray.slice(-(Math.floor(Math.floor(fileArray.length)/2)));
   var imageArray = [];
   pixelArray = loadMasterImage();
   pixelArray = shuffleArray(pixelArray);
@@ -105,38 +172,15 @@ function determineImagePlacement(fileArray) {
       var coloroffset = {r: 30, g: -70, b: 10};
     }
     if (image) {
-      imageArray.push({imagePath: image['filePath'], x: val.x, y: val.y, coloroffset: coloroffset});
+      imageArray.push({imagePath: image['filePath'], x: val.x, y: val.y, coloroffset: coloroffset, shade: val.shade});
     }
   });
-  drawSquares(imageArray, 'add');
+  drawMosaic(imageArray, 'add');
 }
 
-function drawNewestImage(fileArray) {
-  newestPhotoIndex++;
-  if (newestPhotoIndex > showNewPhotos) {
-    newestPhotoIndex = 1;
-  }
-  fileArray.sort(function(a, b) {
-    return b.photoTakenDate - a.photoTakenDate;
-  });
-  var img = new Image;
-  img.src = fileArray[newestPhotoIndex - 1]["filePath"];
-  img.onload = function() {
-    scaledDimensions = fitImageOn(ctx, img);
-    fadeInOut(img, 0, 0.01, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]);
-    setTimeout(function(){
-      fadeInOut(img, 1, -0.01, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]);
-      setTimeout(function(){
-        ctx.clearRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
-        determineImagePlacement(fileArray);
-      }, timeToShowLogoAfterBigImage);
-    }, timeToShowBigImage);
-  }
-}
-
-function drawSquares(imageArray, mode) {
+function drawMosaic(imageArray, mode) {
   var index = 0;
-  var timeDelay = 0;
+  var timeDelay = timeToPauseAfterFadingIn;
   var timeBetweenImagePlacement = timeBetweenImagePlacementRemove;
   if (mode == "add") {
     timeBetweenImagePlacement = timeBetweenImagePlacementAdd;
@@ -168,10 +212,11 @@ function drawSquares(imageArray, mode) {
   });
   setTimeout(function(){
     if (mode === "add") {
-      drawSquares(imageArray, 'remove');
+      drawMosaic(imageArray, 'remove');
     }
     else {
-      loadFiles();
+      flow('drawMosaic_done');
+      return;
     }
   }, (index * timeBetweenImagePlacement) + timeDelay);
 }
@@ -187,7 +232,7 @@ function countDarkPixels() {
   return darkPixels;
 }
 
-function getImageBrightness(imageSrc,callback) {
+function getImageBrightness(imageSrc, callback) {
     var img = document.createElement("img");
     var colorSum = 0;
     img.src = imageSrc;
@@ -232,33 +277,42 @@ function shuffleArray(array) {
     return array;
 }
 
-var fitImageOn = function(ctx, imageObj) {
+function removeDuplicatesBy(keyFn, array) {
+  var mySet = new Set();
+  return array.filter(function(x) {
+    var key = keyFn(x), isNew = !mySet.has(key);
+    if (isNew) mySet.add(key);
+    return isNew;
+  });
+}
+
+var fitImageOn = function(imageObj) {
 	var imageAspectRatio = imageObj.width / imageObj.height;
-	var canvasAspectRatio = ctx.canvas.clientWidth / ctx.canvas.clientHeight;
+	var canvasAspectRatio = canvas.width / canvas.height;
 	var renderableHeight, renderableWidth, xStart, yStart;
 
 	// If image's aspect ratio is less than canvas's we fit on height
 	// and place the image centrally along width
 	if(imageAspectRatio < canvasAspectRatio) {
-		renderableHeight = ctx.canvas.clientHeight;
+		renderableHeight = canvas.height;
 		renderableWidth = imageObj.width * (renderableHeight / imageObj.height);
-		xStart = (ctx.canvas.clientWidth - renderableWidth) / 2;
+		xStart = (canvas.width - renderableWidth) / 2;
 		yStart = 0;
 	}
 
 	// If image's aspect ratio is greater than canvas's we fit on width
 	// and place the image centrally along height
 	else if(imageAspectRatio > canvasAspectRatio) {
-		renderableWidth = ctx.canvas.clientWidth
+		renderableWidth = canvas.width
 		renderableHeight = imageObj.height * (renderableWidth / imageObj.width);
 		xStart = 0;
-		yStart = (ctx.canvas.clientHeight - renderableHeight) / 2;
+		yStart = (canvas.height - renderableHeight) / 2;
 	}
 
 	// Happy path - keep aspect ratio
 	else {
-		renderableHeight = ctx.canvas.clientHeight;
-		renderableWidth = ctx.canvas.clientWidth;
+		renderableHeight = canvas.height;
+		renderableWidth = canvas.width;
 		xStart = 0;
 		yStart = 0;
 	}
@@ -266,20 +320,33 @@ var fitImageOn = function(ctx, imageObj) {
 };
 
 function fadeInOut(img, alpha, delta, x, y, width, height) {
-  loop();
-  function loop() {
-    alpha += delta;
-    if (alpha <= 0 || alpha >= 1) {
-      ctx.globalAlpha = 1;
-      return;
+  return new Promise(function(resolve,reject){
+    function step() {
+      alpha += delta;
+      if (alpha <= 0 || alpha >= 1) { // last step
+        ctx.globalAlpha = 1;
+        if (alpha <= 0) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        else {
+          ctx.drawImage(img, x, y, width, height);;
+        }
+      }
+      else {
+        ctx.clearRect(x, y, width, height);
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(img, x, y, width, height);;
+      }
+
+      if (alpha > 0 && alpha < 1) {
+        requestAnimationFrame(step);
+      }
+      else {
+        resolve();
+      }
     }
-
-    ctx.clearRect(x, y, width, height);
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(img, x, y, width, height);;
-
-    requestAnimationFrame(loop);
-  }
+    requestAnimationFrame(step);
+  });
 }
 
 function loadMasterImage() {
