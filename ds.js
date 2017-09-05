@@ -6,11 +6,11 @@ var timeToShowRecentImage = 7 * 1000;
 var timeToShowMainImage = 1 * 1000; // plus time it takes to load all images
 var timeToPauseAfterFadingIn = 1 * 1000;
 var timeToPauseAfterFadingOut = 1.5 * 1000;
-var imageHeight = 100;
-var imageWidth = 100;
+var imageHeight = 83;
+var imageWidth = 83;
 var fadeSpeed = 0.015;
 var mainImage = "devsigner-background2.png";
-var jsonFiles = ["devsigner/devsigner.json","devsigner/devsignercon.json","devsigner/dvsgnr2016.json"];
+var jsonFiles = ["user/devsignercon.json","hashtag/devsigner.json","hashtag/devsignercon.json","hashtag/dvsgnr2016.json"];
 var darkPixels = countDarkPixels();
 var reuseImages = true;
 var showNewPhotos = 5;
@@ -72,16 +72,17 @@ function loadAllImages() {
           console.log('unknown array structure');
           return true;
         }
-        var filePath = "devsigner/" + (photoURL.substr(photoURL.lastIndexOf('/') + 1));
-        getImageBrightness(filePath, function(brightness) {
+        var fileFolder = item.substr(0,item.indexOf('/') + 1);
+        var fileName = photoURL.substr(photoURL.lastIndexOf('/') + 1);
+        getImageBrightness(fileFolder + fileName, function(brightness) {
           if (brightness >= 0) {
-            fileArray.push({filePath: filePath, brightness: brightness, photoTakenDate: photoTakenDate, photoHeight: photoHeight, photoWidth: photoWidth});
+            fileArray.push({fileFolder: fileFolder, fileName: fileName, brightness: brightness, photoTakenDate: photoTakenDate, photoHeight: photoHeight, photoWidth: photoWidth});
           }
           fileCounterImage--;
           if (fileCounterImage === 0) {
             fileCounterJSON--;
             if (fileCounterJSON === 0) {
-              fileArray = removeDuplicatesBy(x => x.filePath, fileArray);
+              fileArray = removeDuplicatesBy(x => x.fileName, fileArray);
               flow('loadAllImages_done');
               return;
             }
@@ -125,7 +126,7 @@ function drawRecentImage() {
     return b.photoTakenDate - a.photoTakenDate;
   });
   var img = new Image;
-  img.src = fileArray[recentPhotoIndex]["filePath"];
+  img.src = fileArray[recentPhotoIndex]["fileFolder"] + fileArray[recentPhotoIndex]["fileName"];
   img.onload = function() {
     scaledDimensions = fitImageOn(img);
     fadeInOut(img, 0, fadeSpeed, scaledDimensions["xStart"], scaledDimensions["yStart"], scaledDimensions["renderableWidth"], scaledDimensions["renderableHeight"]).then(function(){
@@ -172,7 +173,7 @@ function prepareMosaic() {
       var coloroffset = {r: 30, g: -70, b: 10};
     }
     if (image) {
-      imageArray.push({imagePath: image['filePath'], x: val.x, y: val.y, coloroffset: coloroffset, shade: val.shade});
+      imageArray.push({imagePath: image['fileFolder'] + image['fileName'], x: val.x, y: val.y, coloroffset: coloroffset, shade: val.shade});
     }
   });
   drawMosaic(imageArray, 'add');

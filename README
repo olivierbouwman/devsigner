@@ -3,17 +3,39 @@ Note: Images do not get updated automatically on the demo page.
 
 Get instagram scraper from here: https://github.com/rarcega/instagram-scraper
 
+Hash tags with results
+   devsigner
+   dvsgnr2016
+   devsignercon
+
+Hash tags without results
+   devsigner2017
+   devsigner17
+   devsigner2016
+   devsigner16
+   dvsgnrcon
+   dvsgnrcon2017
+   dvsgnrcon17
+   dvsgnrcon2016
+   dvsgnrcon16
+   dvsgnr
+   dvsgnr2017
+   dvsgnr17
+   dvsgnr16
+
 run these commands to download images and generate a file list.
-   cd /Users/olivierbouwman/Sites/devsigner
-   instagram-scraper devsigner,devsigner2017,devsigner17,devsigner2016,devsigner16,dvsgnrcon,dvsgnrcon2017,dvsgnrcon17,dvsgnrcon2016,dvsgnrcon16,dvsgnr,dvsgnr2017,dvsgnr17,dvsgnr2016,dvsgnr16 -t=image --tag -d devsigner --media_metadata
-   instagram-scraper devsignercon -d devsigner -t=image -d devsigner --media_metadata
+   cd to your project directory
+   instagram-scraper devsigner,dvsgnr2016,devsignercon -t=image --tag -d hashtag --media_metadata --latest
+   instagram-scraper devsignercon -d user -t=image --media_metadata --latest
    instagram-scraper --location=1862978 (test, should only include new photos)
 
+run this command to loop
+   while true; do instagram-scraper devsigner,dvsgnr2016,devsignercon -t=image --tag -d hashtag --media_metadata --latest; instagram-scraper devsignercon -d user -t=image --media_metadata --latest; sleep 30; done
+
 TODO
-* batch script to loop terminal commands with a 10 second pause in between.
-* change resolution to 1920x1080 for HD projector
-* possibly use image age for something so newer images are more prominent than older images (need to load photo timestamp from json files in image dir)
+* filter out oldest mosaic images if there are more than can be shown.
 * some photos are not square, crop? look for this in instagram scraper and comment out: # get non-square image if one exists
+  or just crop in code:
   * ctx.drawImage(image,
     10, 10,   // Start at 10 pixels from the left and the top of the image (crop),
     80, 30,   // "Get" a `80 * 30` (w * h) area from the source image (crop),
