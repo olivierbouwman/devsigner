@@ -6,7 +6,7 @@
         }, 
         "display_url": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13767733_525802334278655_1860103168_n.jpg", 
         "edge_liked_by": {
-            "count": 36
+            "count": 37
         }, 
         "edge_media_to_caption": {
             "edges": [
@@ -18,7 +18,7 @@
             ]
         }, 
         "edge_media_to_comment": {
-            "count": 4
+            "count": 5
         }, 
         "id": "1311934577527003158", 
         "is_video": false, 
@@ -76,6 +76,42 @@
     }, 
     {
         "dimensions": {
+            "height": 1080, 
+            "width": 1080
+        }, 
+        "display_url": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13724512_1723500334558605_894563041_n.jpg", 
+        "edge_liked_by": {
+            "count": 11
+        }, 
+        "edge_media_to_caption": {
+            "edges": [
+                {
+                    "node": {
+                        "text": "My loot from #dvsgnr2016 😝 The trivia question: how do you spell \"Cezanne\"? Best Sunday \"BrainDay\" meeting local and pNw devs and designers."
+                    }
+                }
+            ]
+        }, 
+        "edge_media_to_comment": {
+            "count": 0
+        }, 
+        "id": "1312404428158166379", 
+        "is_video": false, 
+        "owner": {
+            "id": "3248626"
+        }, 
+        "shortcode": "BI2mN--BGVr", 
+        "tags": [
+            "dvsgnr2016"
+        ], 
+        "taken_at_timestamp": 1470670821, 
+        "thumbnail_src": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/s640x640/sh0.08/e35/13724512_1723500334558605_894563041_n.jpg", 
+        "urls": [
+            "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13724512_1723500334558605_894563041_n.jpg"
+        ]
+    }, 
+    {
+        "dimensions": {
             "height": 799, 
             "width": 640
         }, 
@@ -115,42 +151,6 @@
         "thumbnail_src": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e15/c0.79.640.640/13658634_1783291628621550_638343075_n.jpg", 
         "urls": [
             "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e15/13658634_1783291628621550_638343075_n.jpg"
-        ]
-    }, 
-    {
-        "dimensions": {
-            "height": 1080, 
-            "width": 1080
-        }, 
-        "display_url": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13724512_1723500334558605_894563041_n.jpg", 
-        "edge_liked_by": {
-            "count": 11
-        }, 
-        "edge_media_to_caption": {
-            "edges": [
-                {
-                    "node": {
-                        "text": "My loot from #dvsgnr2016 😝 The trivia question: how do you spell \"Cezanne\"? Best Sunday \"BrainDay\" meeting local and pNw devs and designers."
-                    }
-                }
-            ]
-        }, 
-        "edge_media_to_comment": {
-            "count": 0
-        }, 
-        "id": "1312404428158166379", 
-        "is_video": false, 
-        "owner": {
-            "id": "3248626"
-        }, 
-        "shortcode": "BI2mN--BGVr", 
-        "tags": [
-            "dvsgnr2016"
-        ], 
-        "taken_at_timestamp": 1470670821, 
-        "thumbnail_src": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/s640x640/sh0.08/e35/13724512_1723500334558605_894563041_n.jpg", 
-        "urls": [
-            "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13724512_1723500334558605_894563041_n.jpg"
         ]
     }, 
     {
@@ -499,7 +499,7 @@
         }, 
         "display_url": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13767733_525802334278655_1860103168_n.jpg", 
         "edge_liked_by": {
-            "count": 36
+            "count": 37
         }, 
         "edge_media_to_caption": {
             "edges": [
@@ -511,7 +511,7 @@
             ]
         }, 
         "edge_media_to_comment": {
-            "count": 4
+            "count": 5
         }, 
         "id": "1311934577527003158", 
         "is_video": false, 
@@ -575,7 +575,7 @@
         }, 
         "display_url": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13743650_929844847142759_655073469_n.jpg", 
         "edge_liked_by": {
-            "count": 17
+            "count": 18
         }, 
         "edge_media_to_caption": {
             "edges": [
@@ -1095,7 +1095,7 @@
         }, 
         "display_url": "https://scontent-sea1-1.cdninstagram.com/t51.2885-15/e35/13735873_696828123805500_1301465854_n.jpg", 
         "edge_liked_by": {
-            "count": 29
+            "count": 30
         }, 
         "edge_media_to_caption": {
             "edges": [
